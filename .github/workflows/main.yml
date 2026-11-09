@@ -1,0 +1,39 @@
+name: Daily Ringnet Intel Auto-Collector
+
+on:
+  schedule:
+    # 매일 한국 시간 오전 8:00 (UTC 23:00) 자동 실행
+    - cron: '0 23 * * *'
+  workflow_dispatch: # 언제든 수동으로 실행 가능
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 20 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 일일 뉴스 자동 수집 및 데이터 적재
+        run: node scripts/update-news.js
+
+      - name: 적재된 데이터 깃허브 커밋 & 푸시
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/archive.js
+          if git diff --staged --quiet; then
+            echo "변경사항 없음"
+          else
+            git commit -m "Auto-update daily intel [$(date +'%Y-%m-%d')]"
+            git push
+          fi
