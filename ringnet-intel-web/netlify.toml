@@ -1,0 +1,18 @@
+[build]
+  publish = "."
+  edge_functions = "netlify/edge-functions"
+
+[[edge_functions]]
+  path = "/api/news"
+  function = "news"
+  cache = "manual"
+
+[[edge_functions]]
+  path = "/api/archive"
+  function = "news"
+  cache = "manual"
+
+# Netlify state & ignore
+[context.production.environment]
+  NODE_VERSION = "20"
+

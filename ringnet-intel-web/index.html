@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>링네트 일일 & 월간 네트워크·보안 인텔리전스 허브</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="data/archive.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+    .badge-cisco { background: linear-gradient(135deg, #049fd9 0%, #0176a4 100%); color: white; }
+    .nav-tab-active { background-color: #0284c7; color: white; font-weight: 700; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased selection:bg-sky-500 selection:text-white">
+
+  <!-- 상단 네비게이션 헤더 -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 via-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-sky-500/20">
+          📡
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">링네트 인텔리전스 허브</span>
+            <span class="badge-cisco text-[11px] font-semibold px-2 py-0.5 rounded-full shadow-sm">Cisco Gold Partner</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium hidden sm:block">일일 속보 적재 및 월간 주요 동향 종합 시스템</p>
+        </div>
+      </div>
+
+      <!-- 상단 모드 전환 탭 (일일 vs 월간) -->
+      <div class="flex items-center gap-2">
+        <div class="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200 text-xs">
+          <button onclick="switchViewMode('daily')" id="modeBtnDaily" class="nav-tab-active px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5">
+            <span>📰</span> <span>일일 브리핑</span>
+          </button>
+          <button onclick="switchViewMode('monthly')" id="modeBtnMonthly" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg transition-all flex items-center gap-1.5 font-medium">
+            <span>📊</span> <span>월간 결산 리포트</span>
+          </button>
+        </div>
+        <button onclick="copyCurrentView()" id="copyBtn" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors hidden sm:flex items-center gap-1.5 border border-slate-200">
+          <span>📋</span> <span id="copyBtnText">내용 복사</span>
+        </button>
+        <button onclick="window.print()" class="px-3 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-sm transition-colors flex items-center gap-1.5">
+          <span>🖨️</span> PDF 인쇄
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 메인 컨테이너 -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- 히어로 배너 & 데이터 적재 현황 안내 -->
+    <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 text-sky-400 font-semibold text-xs tracking-wider uppercase mb-2">
+            <span>Ringnet Network & Security Intelligence Archive</span>
+            <span>•</span>
+            <span id="bannerSubtitle">데이터 적재 및 월간 결산 지원</span>
+          </div>
+          <h1 id="bannerTitle" class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+            일일 네트워크·보안 속보 및 월간 결산
+          </h1>
+          <p class="text-slate-300 text-sm mt-2 max-w-2xl font-normal leading-relaxed">
+            시스코 골드파트너 <strong class="text-white font-semibold">링네트</strong>의 영업 및 기술 제안을 위해 매일 아침 8시 수집된 기사가 일자별로 적재되며, 매월 말 그달의 핵심 뉴스와 벤더별 동향이 자동으로 종합 결산됩니다.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2 self-start md:self-end">
+          <div class="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2.5 text-center">
+            <span class="block text-slate-400 text-[11px] font-medium">데이터 적재 현황</span>
+            <span id="archiveCountBadge" class="text-white font-bold text-sm">일일 3일치 · 월간 2건</span>
+          </div>
+          <div class="bg-emerald-500/20 backdrop-blur-sm border border-emerald-400/30 rounded-xl px-4 py-2.5 text-center">
+            <span class="block text-emerald-300 text-[11px] font-medium">자동화 상태</span>
+            <span class="text-emerald-100 font-bold text-sm">매일 08:00 KST 수집중</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- [VIEW 1] 일일 브리핑 모드 영역 -->
+    <!-- ========================================== -->
+    <div id="dailyViewContainer" class="space-y-6">
+
+      <!-- 날짜 선택 네비게이터 (적재된 일자별 탐색) -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto p-1 text-xs">
+          <span class="font-bold text-slate-700 whitespace-nowrap mr-1">📅 적재 날짜 선택:</span>
+          <div id="datePills" class="flex items-center gap-1.5">
+            <!-- 자바스크립트로 날짜 버튼 동적 생성 -->
+          </div>
+        </div>
+        <div class="relative w-full sm:w-64 px-1 sm:px-0">
+          <input type="text" id="dailySearchInput" oninput="searchDailyNews()" placeholder="선택일자 뉴스 검색 (아리스타, 칩셋...)" class="w-full text-xs pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all">
+          <span class="absolute left-3 top-2 text-slate-400 text-xs">🔍</span>
+        </div>
+      </div>
+
+      <!-- 선택된 날짜의 30초 헤드라인 -->
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">⚡</span>
+            <h2 id="dailyHeadlineTitle" class="text-lg font-bold text-slate-900 tracking-tight">선택 일자 30초 핵심 요약 (Headlines)</h2>
+          </div>
+          <span id="selectedDateBadge" class="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-full">2026. 11. 09 (월)</span>
+        </div>
+        <div id="dailyHeadlinesGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 동적 렌더링 -->
+        </div>
+      </section>
+
+      <!-- 일일 카테고리 필터 탭 -->
+      <div class="flex items-center gap-1 overflow-x-auto p-1 bg-slate-100 rounded-lg text-xs w-fit border border-slate-200">
+        <button onclick="filterDailyCategory('all')" id="tab-all" class="daily-cat-tab px-3 py-1.5 rounded-md font-semibold bg-white text-slate-900 shadow-sm transition-colors">전체 보기</button>
+        <button onclick="filterDailyCategory('vendor')" id="tab-vendor" class="daily-cat-tab px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-colors">글로벌 벤더</button>
+        <button onclick="filterDailyCategory('partner')" id="tab-partner" class="daily-cat-tab px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-colors">국내 경쟁사(SI)</button>
+        <button onclick="filterDailyCategory('tech')" id="tab-tech" class="daily-cat-tab px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-colors">기술 & 반도체</button>
+        <button onclick="filterDailyCategory('bid')" id="tab-bid" class="daily-cat-tab px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-colors">공공 입찰 & 보안</button>
+      </div>
+
+      <!-- 선택된 날짜의 세부 뉴스 카드 컨테이너 -->
+      <div id="dailyNewsCardsContainer" class="space-y-6">
+        <!-- 동적 렌더링 -->
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- [VIEW 2] 월간 결산 리포트 모드 영역 -->
+    <!-- ========================================== -->
+    <div id="monthlyViewContainer" class="space-y-6 hidden">
+      
+      <!-- 월 선택 네비게이터 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto p-1 text-xs">
+          <span class="font-bold text-slate-700 whitespace-nowrap mr-1">📊 결산 월 선택:</span>
+          <div id="monthPills" class="flex items-center gap-1.5">
+            <!-- 자바스크립트로 월 버튼 동적 생성 -->
+          </div>
+        </div>
+        <span class="text-xs text-slate-500 font-medium">※ 매월 말일 익월 1일 자동 종합 분석</span>
+      </div>
+
+      <!-- 월간 결산 세부 내용 렌더링 영역 -->
+      <div id="monthlyReportContent" class="space-y-6">
+        <!-- 동적 렌더링 -->
+      </div>
+
+    </div>
+
+    <!-- 하단 푸터 -->
+    <footer class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 shadow-sm">
+      <div>
+        <p class="font-semibold text-slate-800">📡 링네트 일일 & 월간 인텔리전스 시스템</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">매일 아침 08:00 KST 일일 데이터 적재 및 월말 누적 결산 자동화</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="sidecar://dashboard" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5">
+          <span>⚙️</span> 자동화 스케줄 관리 대시보드
+        </a>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- 토스트 알림창 -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none flex items-center gap-2 z-50">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">복사되었습니다.</span>
+  </div>
+
+  <script>
+    // 현재 상태 관리
+    let currentMode = 'daily';
+    let selectedDate = '';
+    let selectedMonth = '';
+
+    // 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!window.NEWS_ARCHIVE || !window.NEWS_ARCHIVE.daily) {
+        console.error("아카이브 데이터를 불러올 수 없습니다.");
+        return;
+      }
+
+      // 첫 번째 일자(최신일자) 선택
+      selectedDate = window.NEWS_ARCHIVE.daily[0].date;
+      selectedMonth = window.NEWS_ARCHIVE.monthly[0].month;
+
+      renderDatePills();
+      renderMonthPills();
+      renderDailyView();
+      renderMonthlyView();
+    });
+
+    // 뷰 모드 전환 (일일 vs 월간)
+    function switchViewMode(mode) {
+      currentMode = mode;
+      const dailyContainer = document.getElementById('dailyViewContainer');
+      const monthlyContainer = document.getElementById('monthlyViewContainer');
+      const modeBtnDaily = document.getElementById('modeBtnDaily');
+      const modeBtnMonthly = document.getElementById('modeBtnMonthly');
+      const bannerTitle = document.getElementById('bannerTitle');
+
+      if (mode === 'daily') {
+        dailyContainer.classList.remove('hidden');
+        monthlyContainer.classList.add('hidden');
+        modeBtnDaily.className = 'nav-tab-active px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5';
+        modeBtnMonthly.className = 'px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg transition-all flex items-center gap-1.5 font-medium';
+        bannerTitle.innerText = "일일 네트워크·보안 속보 및 적재 아카이브";
+        renderDailyView();
+      } else {
+        dailyContainer.classList.add('hidden');
+        monthlyContainer.classList.remove('hidden');
+        modeBtnMonthly.className = 'nav-tab-active px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5';
+        modeBtnDaily.className = 'px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg transition-all flex items-center gap-1.5 font-medium';
+        bannerTitle.innerText = "월간 네트워크·보안 주요 이슈 종합 결산 리포트";
+        renderMonthlyView();
+      }
+    }
+
+    // 날짜 선택기 렌더링
+    function renderDatePills() {
+      const container = document.getElementById('datePills');
+      container.innerHTML = '';
+      window.NEWS_ARCHIVE.daily.forEach(item => {
+        const btn = document.createElement('button');
+        const isActive = item.date === selectedDate;
+        btn.className = `px-3 py-1 rounded-lg font-semibold transition-all ${
+          isActive 
+            ? 'bg-sky-600 text-white shadow-sm' 
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`;
+        btn.innerHTML = `${item.displayDate} ${item.isToday ? '<span class="text-[10px] bg-sky-200 text-sky-900 px-1 py-0.2 rounded ml-1 font-bold">오늘</span>' : ''}`;
+        btn.onclick = () => {
+          selectedDate = item.date;
+          renderDatePills();
+          renderDailyView();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // 월 선택기 렌더링
+    function renderMonthPills() {
+      const container = document.getElementById('monthPills');
+      container.innerHTML = '';
+      window.NEWS_ARCHIVE.monthly.forEach(item => {
+        const btn = document.createElement('button');
+        const isActive = item.month === selectedMonth;
+        btn.className = `px-3 py-1 rounded-lg font-semibold transition-all ${
+          isActive 
+            ? 'bg-indigo-600 text-white shadow-sm' 
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`;
+        btn.innerHTML = `${item.displayMonth} <span class="text-[10px] ${isActive ? 'bg-indigo-400 text-white' : 'bg-slate-200 text-slate-700'} px-1 py-0.2 rounded ml-1">${item.status}</span>`;
+        btn.onclick = () => {
+          selectedMonth = item.month;
+          renderMonthPills();
+          renderMonthlyView();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // 일일 브리핑 렌더링
+    function renderDailyView() {
+      const currentData = window.NEWS_ARCHIVE.daily.find(d => d.date === selectedDate) || window.NEWS_ARCHIVE.daily[0];
+      
+      document.getElementById('selectedDateBadge').innerText = currentData.displayDate;
+      document.getElementById('dailyHeadlineTitle').innerText = `${currentData.displayDate} 30초 핵심 요약 (Headlines)`;
+
+      // 1. 헤드라인 렌더링
+      const headlinesGrid = document.getElementById('dailyHeadlinesGrid');
+      headlinesGrid.innerHTML = '';
+      currentData.headlines.forEach(hl => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative border-l-4 border-l-sky-500";
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-1 mb-2">
+            <span class="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded">${hl.tag}</span>
+            <span class="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">⏱️ ${hl.timeBadge}</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-sm leading-snug mb-2">${hl.title}</h3>
+          <p class="text-xs text-slate-600 leading-relaxed mb-3">${hl.summary}</p>
+          <div class="text-[11px] text-slate-500 font-medium pt-2 border-t border-slate-100 flex items-center justify-between">
+            <span>출처: ${hl.source}</span>
+            <span>${hl.timestamp}</span>
+          </div>
+        `;
+        headlinesGrid.appendChild(card);
+      });
+
+      // 2. 세부 4대 섹션 렌더링
+      const cardsContainer = document.getElementById('dailyNewsCardsContainer');
+      cardsContainer.innerHTML = '';
+
+      const sectionConfigs = [
+        { key: 'vendor', icon: '⚔️', title: '1. 글로벌 벤더 동향 (Arista, HPE Aruba, Juniper vs Cisco)', badge: '글로벌 벤더' },
+        { key: 'partner', icon: '🏢', title: '2. 국내 파트너/SI 경쟁사 현황 (오파스넷, 이테크시스템, 에스넷 등)', badge: '국내 파트너' },
+        { key: 'tech', icon: '🌐', title: '3. 차세대 기술 & 데이터센터·반도체 생태계', badge: '기술 · 반도체' },
+        { key: 'bid', icon: '💼', title: '4. 공공·엔터프라이즈 입찰 & 보안 정책 기회', badge: '조달 · 보안규제' }
+      ];
+
+      sectionConfigs.forEach(sec => {
+        const items = currentData.sections[sec.key] || [];
+        if (items.length === 0) return;
+
+        const article = document.createElement('article');
+        article.className = "news-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow";
+        article.setAttribute('data-category', sec.key);
+
+        let itemsHtml = '';
+        items.forEach(item => {
+          const isHigh = item.isHighlight ? 'bg-sky-50/60 border-sky-200' : 'bg-slate-50/70 border-slate-100';
+          const tagsHtml = (item.tags || []).map(t => `<span class="text-[10px] font-semibold bg-slate-200 text-slate-800 px-2 py-0.5 rounded">${t}</span>`).join(' ');
+
+          itemsHtml += `
+            <div class="p-4 rounded-xl border ${isHigh} mb-3 last:mb-0">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <h3 class="font-bold text-sm text-slate-900">${item.title}</h3>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+                    ⏱️ ${item.timeBadge}
+                  </span>
+                  <span class="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">출처: ${item.source}</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed mb-3">${item.content}</p>
+              <div class="flex flex-wrap gap-1.5">${tagsHtml}</div>
+            </div>
+          `;
+        });
+
+        article.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">${sec.icon}</span>
+              <h2 class="text-base font-bold text-slate-900">${sec.title}</h2>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">${sec.badge}</span>
+          </div>
+          <div class="space-y-3">${itemsHtml}</div>
+        `;
+        cardsContainer.appendChild(article);
+      });
+    }
+
+    // 월간 결산 렌더링
+    function renderMonthlyView() {
+      const monthData = window.NEWS_ARCHIVE.monthly.find(m => m.month === selectedMonth) || window.NEWS_ARCHIVE.monthly[0];
+      const container = document.getElementById('monthlyReportContent');
+
+      let trendsHtml = '';
+      monthData.topTrends.forEach((trend, idx) => {
+        trendsHtml += `
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-bold flex items-center justify-center">${idx + 1}</span>
+              <h4 class="font-bold text-sm text-slate-900">${trend.title}</h4>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">${trend.desc}</p>
+          </div>
+        `;
+      });
+
+      let actionsHtml = '';
+      monthData.actionItems.forEach(action => {
+        actionsHtml += `
+          <li class="flex items-start gap-2 text-xs text-slate-700 leading-relaxed">
+            <span class="text-indigo-600 font-bold">✔</span>
+            <span>${action}</span>
+          </li>
+        `;
+      });
+
+      container.innerHTML = `
+        <!-- 월간 테마 배너 -->
+        <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 rounded-2xl p-6 text-white shadow-md border border-indigo-800/40">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs font-bold bg-indigo-500 text-white px-2.5 py-0.5 rounded-full">${monthData.displayMonth} 결산</span>
+            <span class="text-xs text-indigo-300 font-medium">상태: ${monthData.status}</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2">🏆 월간 핵심 테마: "${monthData.theme}"</h2>
+          <p class="text-xs text-slate-300 leading-relaxed max-w-4xl">${monthData.keySummary}</p>
+        </div>
+
+        <!-- 이달의 3대 핵심 트렌드 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">📈</span>
+            <h3 class="text-base font-bold text-slate-900">이달의 3대 핵심 마켓 & 기술 트렌드</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">${trendsHtml}</div>
+        </div>
+
+        <!-- 글로벌 벤더 3사 월간 판세 분석 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">⚔️</span>
+            <h3 class="text-base font-bold text-slate-900">글로벌 벤더 3사 월간 동향 및 시장 영향도</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 bg-sky-50/60 rounded-xl border border-sky-100">
+              <span class="font-bold text-xs text-sky-900 block mb-1">Cisco (시스코)</span>
+              <p class="text-xs text-slate-700 leading-relaxed">${monthData.vendorAnalysis.cisco}</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="font-bold text-xs text-slate-900 block mb-1">Arista (아리스타)</span>
+              <p class="text-xs text-slate-700 leading-relaxed">${monthData.vendorAnalysis.arista}</p>
+            </div>
+            <div class="p-4 bg-emerald-50/60 rounded-xl border border-emerald-100">
+              <span class="font-bold text-xs text-emerald-900 block mb-1">HPE Networking (주니퍼+아루바)</span>
+              <p class="text-xs text-slate-700 leading-relaxed">${monthData.vendorAnalysis.juniperHpe}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 링네트 월간 비즈니스 액션 플랜 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm border-l-4 border-l-indigo-600">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">🎯</span>
+            <h3 class="text-base font-bold text-slate-900">링네트 월간 수주 및 영업 전략 권고사항</h3>
+          </div>
+          <ul class="space-y-2.5">${actionsHtml}</ul>
+        </div>
+      `;
+    }
+
+    // 일일 카테고리 필터링
+    function filterDailyCategory(cat) {
+      const cards = document.querySelectorAll('.news-card');
+      const tabs = document.querySelectorAll('.daily-cat-tab');
+      tabs.forEach(tab => {
+        tab.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'font-semibold');
+        tab.classList.add('text-slate-600', 'font-medium');
+      });
+      const activeTab = document.getElementById(`tab-${cat}`);
+      if (activeTab) {
+        activeTab.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'font-semibold');
+        activeTab.classList.remove('text-slate-600', 'font-medium');
+      }
+
+      cards.forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-category') === cat) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // 일일 뉴스 실시간 검색
+    function searchDailyNews() {
+      const query = document.getElementById('dailySearchInput').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.news-card');
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(query) ? 'block' : 'none';
+      });
+    }
+
+    // 현재 뷰 내용 클립보드 복사
+    function copyCurrentView() {
+      let copyText = '';
+      if (currentMode === 'daily') {
+        const cur = window.NEWS_ARCHIVE.daily.find(d => d.date === selectedDate) || window.NEWS_ARCHIVE.daily[0];
+        copyText = `# 📡 [링네트 일일 인텔리전스] (${cur.displayDate})\n\n`;
+        cur.headlines.forEach(hl => {
+          copyText += `⚡ [${hl.tag}] ${hl.title} (${hl.timeBadge})\n   ${hl.summary}\n\n`;
+        });
+      } else {
+        const curM = window.NEWS_ARCHIVE.monthly.find(m => m.month === selectedMonth) || window.NEWS_ARCHIVE.monthly[0];
+        copyText = `# 📊 [링네트 월간 종합 결산] ${curM.displayMonth}\n\n테마: ${curM.theme}\n${curM.keySummary}\n\n`;
+        curM.topTrends.forEach((t, i) => {
+          copyText += `${i+1}. ${t.title}\n   ${t.desc}\n\n`;
+        });
+      }
+
+      navigator.clipboard.writeText(copyText).then(() => {
+        showToast("현재 화면 내용이 클립보드에 복사되었습니다!");
+      }).catch(() => {
+        showToast("복사 권한을 확인해주세요.");
+      });
+    }
+
+    // 토스트 팝업
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
